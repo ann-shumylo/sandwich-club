@@ -19,22 +19,30 @@ public class JsonUtils {
     private static final String INGREDIENTS = "ingredients";
 
     public static Sandwich parseSandwichJson(String json) {
+        List<String> ingredientsList = new ArrayList<>();
+        List<String> knownAsList = new ArrayList<>();
+        String mainName = "";
+
         try {
             JSONObject jsonObject = new JSONObject(json);
 
-            JSONObject name = jsonObject.getJSONObject(PRODUCT_BY_NAME);
-            String mainName = name.optString(MAIN_NAME);
+            if (jsonObject.has(PRODUCT_BY_NAME)) {
+                JSONObject name = jsonObject.getJSONObject(PRODUCT_BY_NAME);
+                mainName = name.optString(MAIN_NAME);
+                if (name.has(ALSO_KNOWN_AS)) {
+                    JSONArray knownAdArray = name.getJSONArray(ALSO_KNOWN_AS);
+                    knownAsList = getListFromJsonArray(knownAdArray);
+                }
+            }
 
-            JSONArray knownAdArray = name.getJSONArray(ALSO_KNOWN_AS);
-            List<String> knownAsList = getListFromJsonArray(knownAdArray);
+            String placeOfOrigin = jsonObject.has(PLACE_OF_ORIGIN) ? jsonObject.optString(PLACE_OF_ORIGIN) : "";
+            String description = jsonObject.has(DESCRIPTION) ? jsonObject.optString(DESCRIPTION) : "";
+            String image = jsonObject.has(IMAGE) ? jsonObject.optString(IMAGE) : "";
 
-            String placeOfOrigin = jsonObject.optString(PLACE_OF_ORIGIN);
-            String description = jsonObject.optString(DESCRIPTION);
-            String image = jsonObject.optString(IMAGE);
-
-            JSONArray ingredientsArray = jsonObject.getJSONArray(INGREDIENTS);
-            List<String> ingredientsList = getListFromJsonArray(ingredientsArray);
-
+            if (jsonObject.has(INGREDIENTS)) {
+                JSONArray ingredientsArray = jsonObject.getJSONArray(INGREDIENTS);
+                ingredientsList = getListFromJsonArray(ingredientsArray);
+            }
             return new Sandwich(mainName, knownAsList, placeOfOrigin, description, image, ingredientsList);
         } catch (JSONException e) {
             e.printStackTrace();
